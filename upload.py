@@ -8,6 +8,7 @@ import os
 import random
 import sys
 import time
+import twitter
 
 from apiclient.discovery import build
 from apiclient.errors import HttpError
@@ -103,7 +104,7 @@ def initialize_upload(youtube, options):
 
   body=dict(
     snippet=dict(
-      title=Config.get('Book', 'Title') + "#" + Config.get('Episode'),
+      title=Config.get('Book', 'Title') + " #" + Config.get('Youtube', 'Episode'),
       description="Auto Audiobook\n" + Config.get('Book', 'Title') + \
                   " by " + Config.get('Book', 'Author') + "\n"     + \
                   "Episode #" + Config.get('Youtube', 'Episode'),
@@ -150,6 +151,22 @@ def initialize_upload(youtube, options):
     part="snippet",
     body=body
   ).execute()
+
+  # Sleep 5 minutes before tweeting to allow time for processing
+  time.sleep(60 * 5);
+
+  # Connect to Twitter
+  api = twitter.Api(Config.get('Twitter', 'Consumer Key'), 
+                    Config.get('Twitter', 'Consumer Secret'),
+                    Config.get('Twitter', 'Access Token'), 
+                    Config.get('Twitter', 'Access Token Secret'))
+
+  # Post tweet text and image
+  status = api.PostUpdate(Config.get('Book', 'Title') + ' by '         + \
+                          Config.get('Book', 'Author') + ' - Episode ' + \
+                          Config.get('Youtube', 'Episode') + ' \n'     + \
+                          'http://www.youtube.com/watch?v=' + video_id + \
+                          '&list=' + Config.get('Youtube', 'Playlist ID'))
 
 # This method implements an exponential backoff strategy to resume a
 # failed upload.
