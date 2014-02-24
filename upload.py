@@ -104,10 +104,13 @@ def initialize_upload(youtube, options):
 
   body=dict(
     snippet=dict(
-      title=Config.get('Book', 'Title') + " #" + Config.get('Youtube', 'Episode'),
-      description="Auto Audiobook\n" + Config.get('Book', 'Title') + \
-                  " by " + Config.get('Book', 'Author') + "\n"     + \
-                  "Episode #" + Config.get('Youtube', 'Episode'),
+      title=Config.get('Book', 'Title') + " - Episode #" + Config.get('Youtube', 'Episode'),
+      description="Auto Audiobook\n" + Config.get('Book', 'Title')        + \
+                  " by " + Config.get('Book', 'Author') + "\n"            + \
+                  "Episode #" + Config.get('Youtube', 'Episode') + '\n\n' + \
+                  Config.get('Youtube', 'Description') + '\n\n'           + \
+                  'https://twitter.com/auto_audiobook \n'                 + \
+                  'https://github.com/amarriner/Auto-AudioBook \n',
       tags=tags,
       categoryId=Config.get('Youtube', 'Category ID')
     ),
