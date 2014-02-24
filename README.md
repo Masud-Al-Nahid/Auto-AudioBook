@@ -5,7 +5,7 @@
 This bot reads through works of fiction by selecting a range of lines and running those lines through 
 [espeak](http://espeak.sourceforge.net/). It then uses an image of the author and the WAV output to create an MP4 video 
 file which is uploaded to [Youtube](http://www.youtube.com/channel/UCedRPx3POGLFfIIaishqZTg) and after processing posted 
-to [Twitter](https://twitter.com/auto_audiobook).
+to [Twitter](https://twitter.com/auto_audiobook). Book texts downloaded from [Project Gutenberg](http://www.gutenberg.org/).
 
 **Dependencies**
  * [python-twitter](https://code.google.com/p/python-twitter/)
