@@ -1,1 +1,3 @@
+#!/bin/sh
+
 ffmpeg -loop 1 -i out.jpg -vf scale=640:480 -y -i out.wav -acodec libvorbis -shortest out.mp4

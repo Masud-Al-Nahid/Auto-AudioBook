@@ -1,46 +1,57 @@
 #!/usr/bin/python2.7
 
-BOOK_DIR  = 'books'
-BOOK_FILE = 'tale_of_two_cities.txt'
-
-f = open('last_line', 'r')
-last_line = int(f.read())
-f.close()
-
-f = open(BOOK_DIR + '/' + BOOK_FILE, 'r')
-book = f.read().split('\n')
-f.close()
+import ConfigParser
+import subprocess
 
 blank_lines = 0
 text_lines  = 0
 audio_text  = []
-for i in range(last_line, last_line + 500):
+
+# Read values from an configuration file
+# This file also has values written out to it at various times which is probably not the best 
+# idea, but I liked the succinctness of it
+INI_FILE = 'auto_audiobook.ini'
+Config = ConfigParser.ConfigParser()
+Config.read(INI_FILE)
+
+# Open the book and read it in
+f = open(Config.get('Book', 'Directory') + '/' + Config.get('Book', 'File'), 'r')
+book = f.read().split('\n')
+f.close()
+
+# Loop through the book until we find enough non-blank lines, accumulating them in a list
+for i in range(int(Config.get('Auto', 'Last Line')), int(Config.get('Auto', 'Last Line')) + 500):
    if (len(book[i].strip())):
       text_lines  = text_lines + 1
    else:
       blank_lines = blank_lines + 1
-      if text_lines >= 50:
+      if text_lines >= int(Config.get('Book', 'Lines')):
          break
 
    audio_text.append(book[i])
 
-f = open('last_line', 'w')
-f.write(str(last_line + i))
-f.close()
+# Update the config file with the line we stopped at
+f = open(INI_FILE, 'w')
+Config.set('Auto', 'Last Line', int(Config.get('Auto', 'Last Line')) + len(audio_text))
+Config.set('Youtube', 'Episode', int(Config.get('Youtube', 'Episode')) + 1)
+Config.write(f)
 
+# Write the text to be converted out to a file
 f = open('out.txt', 'w')
 for line in audio_text:
    f.write(line.strip() + '\n')
 f.close()
 
-f = open('number', 'r')
-num = int(f.read())
-f.close()
+# Debug output
+print 'Text Lines  : ' + str(text_lines)
+print 'Blank Lines : ' + str(blank_lines)
+print 'Total Length: ' + str(len(audio_text))
 
-f = open('number', 'w')
-f.write(str(num + 1))
-f.close()
+# Call the shell script that reads the text file generated above and runs it through espeak to create a WAV file
+subprocess.call('./make_audio.shl')
 
-print 'Text Lines : ' + str(text_lines)
-print 'Blank Lines: ' + str(blank_lines)
-print audio_text
+# Call the shell script that uses the book image and espeack WAV create above to generate an MP4 file
+subprocess.call('./make_video.shl')
+
+# Upload the file to Youtube and place it in a playlist
+subprocess.call(['./upload.py', '--noauth_local_webserver', '--file', 'out.mp4'])

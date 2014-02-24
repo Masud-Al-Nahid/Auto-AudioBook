@@ -16,6 +16,13 @@ from oauth2client.client import flow_from_clientsecrets
 from oauth2client.file import Storage
 from oauth2client.tools import argparser, run_flow
 
+# Read values from an configuration file
+# This file also has values written out to it at various times which is probably not the best
+# idea, but I liked the succinctness of it
+import ConfigParser
+INI_FILE = 'auto_audiobook.ini'
+Config = ConfigParser.ConfigParser()
+Config.read(INI_FILE)
 
 # Explicitly tell the underlying HTTP transport library not to retry, since
 # we are handling retry logic ourselves.
@@ -92,18 +99,16 @@ def initialize_upload(youtube, options):
   if options.keywords:
     tags = options.keywords.split(",")
 
-  tags = ['Books', 'Auto Audiobook', 'A Tale of Two Cities', 'Charles Dickens']
-
-  f = open('number', 'r')
-  num = int(f.read())
-  f.close()
+  tags = ['Books', 'Auto Audiobook', Config.get('Book', 'Title'), Config.get('Book', 'Author')]
 
   body=dict(
     snippet=dict(
-      title="A Tale of Two Cities #" + str(num),
-      description="Auto Audiobook\nA Tale of Two Cities #" + str(num),
+      title=Config.get('Book', 'Title') + "#" + Config.get('Episode'),
+      description="Auto Audiobook\n" + Config.get('Book', 'Title') + \
+                  " by " + Config.get('Book', 'Author') + "\n"     + \
+                  "Episode #" + Config.get('Youtube', 'Episode'),
       tags=tags,
-      categoryId=24
+      categoryId=Config.get('Youtube', 'Category ID')
     ),
     status=dict(
       privacyStatus=options.privacyStatus
@@ -133,7 +138,7 @@ def initialize_upload(youtube, options):
   # Local mod to add uploaded video to a playlist
   body=dict(
     snippet=dict(
-      playlistId="PLFEZyhf4521v6DOrHqRpCY5MN0xGZ5F_p",
+      playlistId=Config.get('Youtube', 'Playlist ID'),
       resourceId=dict(
         kind="youtube#video",
         videoId=video_id
