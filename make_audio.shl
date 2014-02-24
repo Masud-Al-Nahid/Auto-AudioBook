@@ -1,0 +1,1 @@
+espeak -s 130 -f out.txt -w out.wav
