@@ -1,6 +1,5 @@
 client_secrets.json
-out.jpg
-out.mp4
-out.txt
-out.wav
+out.*
+trailer.*
+auto_audiobook.shl
 upload.py-oauth2.json
