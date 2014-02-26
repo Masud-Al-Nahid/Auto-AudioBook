@@ -4,3 +4,4 @@ trailer.*
 auto_audiobook.shl
 auto_audiobook.ini
 upload.py-oauth2.json
+videos/*
