@@ -53,7 +53,7 @@ print 'Blank Lines : ' + str(blank_lines)
 print 'Total Length: ' + str(len(audio_text))
 
 # Call the shell script that reads the text file generated above and runs it through espeak to create a WAV file
-subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed')])
+subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed'), Config.get('Auto', 'Voice')])
 
 # Call the shell script that uses the book image and espeack WAV create above to generate an MP4 file
 subprocess.call('./make_video.shl')
