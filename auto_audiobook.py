@@ -1,6 +1,8 @@
 #!/usr/bin/python2.7
 
 import ConfigParser
+import os
+import shutil
 import subprocess
 
 blank_lines = 0
@@ -51,10 +53,16 @@ print 'Blank Lines : ' + str(blank_lines)
 print 'Total Length: ' + str(len(audio_text))
 
 # Call the shell script that reads the text file generated above and runs it through espeak to create a WAV file
-subprocess.call('./make_audio.shl')
+subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed')])
 
 # Call the shell script that uses the book image and espeack WAV create above to generate an MP4 file
-subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed')])
+subprocess.call('./make_video.shl')
+
+# Archive the video in case of errors uploading
+if (not os.path.exists('videos/' + Config.get('Book', 'File').split('.')[0])):
+   os.mkdir('videos/' + Config.get('Book', 'File').split('.')[0])
+
+shutil.copy2('out.mp4', 'videos/' + Config.get('Book', 'File').split('.')[0] + '/' + str(next_episode) + '.mp4')
 
 # Upload the file to Youtube and place it in a playlist
 subprocess.call(['./upload.py', '--noauth_local_webserver', '--file', 'out.mp4'])
