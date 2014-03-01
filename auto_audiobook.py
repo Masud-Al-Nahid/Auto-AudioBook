@@ -21,48 +21,55 @@ f = open(Config.get('Book', 'Directory') + '/' + Config.get('Book', 'File'), 'r'
 book = f.read().split('\n')
 f.close()
 
-# Loop through the book until we find enough non-blank lines, accumulating them in a list
-for i in range(int(Config.get('Auto', 'Last Line')), int(Config.get('Auto', 'Last Line')) + 500):
-   if (i < len(book) - 1):
-      if (len(book[i].strip())):
-         text_lines  = text_lines + 1
-      else:
-         blank_lines = blank_lines + 1
-         if text_lines >= int(Config.get('Book', 'Lines')):
-            break
+# Make sure we haven't finished the book yet
+if (int(Config.get('Auto', 'Last Line')) < len(book)):
 
-      audio_text.append(book[i])
+   # Loop through the book until we find enough non-blank lines, accumulating them in a list
+   for i in range(int(Config.get('Auto', 'Last Line')), int(Config.get('Auto', 'Last Line')) + 500):
+      if (i < len(book) - 1):
+         if (len(book[i].strip())):
+            text_lines  = text_lines + 1
+         else:
+            blank_lines = blank_lines + 1
+            if text_lines >= int(Config.get('Book', 'Lines')):
+               break
 
-# Update the config file with the line we stopped at
-f = open(INI_FILE, 'w')
-Config.set('Auto', 'Last Line', int(Config.get('Auto', 'Last Line')) + len(audio_text))
-next_episode = int(Config.get('Youtube', 'Episode')) + 1
-Config.set('Youtube', 'Episode', next_episode)
-Config.write(f)
+         audio_text.append(book[i])
 
-# Write the text to be converted out to a file
-f = open('out.txt', 'w')
-f.write('Episode number ' + str(next_episode) + '\n\n')
-for line in audio_text:
-   f.write(line.strip() + '\n')
-f.close()
+   # Update the config file with the line we stopped at
+   f = open(INI_FILE, 'w')
+   Config.set('Auto', 'Last Line', int(Config.get('Auto', 'Last Line')) + len(audio_text))
+   next_episode = int(Config.get('Youtube', 'Episode')) + 1
+   Config.set('Youtube', 'Episode', next_episode)
+   Config.write(f)
 
-# Debug output
-print 'Text Lines  : ' + str(text_lines)
-print 'Blank Lines : ' + str(blank_lines)
-print 'Total Length: ' + str(len(audio_text))
+   # Write the text to be converted out to a file
+   f = open('out.txt', 'w')
+   f.write('Episode number ' + str(next_episode) + '\n\n')
+   for line in audio_text:
+      f.write(line.strip() + '\n')
+   f.close()
 
-# Call the shell script that reads the text file generated above and runs it through espeak to create a WAV file
-subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed'), Config.get('Auto', 'Voice')])
+   # Debug output
+   print 'Text Lines  : ' + str(text_lines)
+   print 'Blank Lines : ' + str(blank_lines)
+   print 'Total Length: ' + str(len(audio_text))
 
-# Call the shell script that uses the book image and espeack WAV create above to generate an MP4 file
-subprocess.call('./make_video.shl')
+   # Call the shell script that reads the text file generated above and runs it through espeak to create a WAV file
+   subprocess.call(['./make_audio.shl', Config.get('Auto', 'Speed'), Config.get('Auto', 'Voice')])
 
-# Archive the video in case of errors uploading
-if (not os.path.exists('videos/' + Config.get('Book', 'File').split('.')[0])):
-   os.mkdir('videos/' + Config.get('Book', 'File').split('.')[0])
+   # Call the shell script that uses the book image and espeack WAV create above to generate an MP4 file
+   subprocess.call('./make_video.shl')
 
-shutil.copy2('out.mp4', 'videos/' + Config.get('Book', 'File').split('.')[0] + '/' + str(next_episode) + '.mp4')
+   # Archive the video in case of errors uploading
+   if (not os.path.exists('videos/' + Config.get('Book', 'File').split('.')[0])):
+      os.mkdir('videos/' + Config.get('Book', 'File').split('.')[0])
 
-# Upload the file to Youtube and place it in a playlist
-subprocess.call(['./upload.py', '--noauth_local_webserver', '--file', 'out.mp4'])
+   shutil.copy2('out.mp4', 'videos/' + Config.get('Book', 'File').split('.')[0] + '/' + str(next_episode) + '.mp4')
+
+   # Upload the file to Youtube and place it in a playlist
+   subprocess.call(['./upload.py', '--noauth_local_webserver', '--file', 'out.mp4'])
+
+# If we're already finished, don't do anything except output a message noting that
+else:
+   print 'Book complete!'
