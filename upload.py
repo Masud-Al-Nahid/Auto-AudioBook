@@ -140,6 +140,43 @@ def initialize_upload(youtube, options):
   video_id = resumable_upload(insert_request)
 
   # Local mod to add uploaded video to a playlist
+  response = youtube.playlists().list(
+    part="snippet",
+    mine="true"
+  ).execute()
+
+  lists = 1
+  for item in response['items']:
+    if (item['snippet']['title'].startswith(Config.get('Book', 'Title'))):
+      lists = lists + 1
+
+  response = youtube.playlistItems().list(
+    part="id",
+    playlistId=Config.get('Youtube', 'Playlist ID')
+  ).execute()
+
+  if (response['pageInfo']['totalResults'] >= 200):
+    body=dict(
+      snippet=dict(
+        title=Config.get('Book', 'Title') + ' (' + str(lists) + ')',
+        description='Auto Audiobook version of ' + Config.get('Book', 'Title') + \
+                    ' by ' + Config.get('Book', 'Author') + ' (' + str(lists) + ')'
+      ),
+      status=dict(
+        privacyStatus='public'
+      )
+    )
+
+    response = youtube.playlists().insert(
+      part="snippet,status",
+      body=body
+    ).execute()
+
+    f = open(INI_FILE, 'w')
+    Config.set('Youtube', 'Playlist ID', response['id'])
+    Config.write(f)
+    f.close()
+
   body=dict(
     snippet=dict(
       playlistId=Config.get('Youtube', 'Playlist ID'),
@@ -155,8 +192,8 @@ def initialize_upload(youtube, options):
     body=body
   ).execute()
 
-  # Sleep 5 minutes before tweeting to allow time for processing
-  time.sleep(60 * 5);
+  # Sleep 10 minutes before tweeting to allow time for processing
+  time.sleep(60 * 10);
 
   # Connect to Twitter
   api = twitter.Api(Config.get('Twitter', 'Consumer Key'), 

@@ -42,6 +42,7 @@ if (int(Config.get('Auto', 'Last Line')) < len(book)):
    next_episode = int(Config.get('Youtube', 'Episode')) + 1
    Config.set('Youtube', 'Episode', next_episode)
    Config.write(f)
+   f.close()
 
    # Write the text to be converted out to a file
    f = open('out.txt', 'w')
